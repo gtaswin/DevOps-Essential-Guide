@@ -1,0 +1,1817 @@
+# AWS Essential Guide
+
+## Table of Contents
+- [Core Concepts](#core-concepts)
+- [Identity and Access Management (IAM)](#identity-and-access-management-iam)
+- [Virtual Private Cloud (VPC)](#virtual-private-cloud-vpc)
+- [Compute Services](#compute-services)
+- [Storage Services](#storage-services)
+- [Database Services](#database-services)
+- [Networking](#networking)
+- [Security](#security)
+- [Monitoring and Logging](#monitoring-and-logging)
+- [DevOps and CI/CD](#devops-and-cicd)
+- [Best Practices](#best-practices)
+
+## Core Concepts
+
+### AWS Global Infrastructure
+- **Regions**: Geographic areas containing multiple Availability Zones (e.g., us-east-1, eu-west-1)
+- **Availability Zones (AZs)**: Isolated data centers within a region for high availability
+- **Edge Locations**: CloudFront content delivery network endpoints worldwide (400+ locations)
+- **Local Zones**: Extensions of AWS Regions for ultra-low latency applications
+- **Wavelength Zones**: Ultra-low latency applications for 5G devices
+- **AWS Outposts**: Fully managed service extending AWS to on-premises
+
+### AWS Resource Hierarchy
+AWS organizes resources in a hierarchical structure from top to bottom:
+
+```
+AWS Organization (Optional - Top Level)
+├── Organizational Units (OUs)
+│   └── AWS Accounts
+│       └── Regions
+│           └── Availability Zones
+│               └── Resources (VPCs, Subnets, EC2, etc.)
+└── Service Control Policies (SCPs)
+```
+
+**1. AWS Organization** (Top Level - Optional)
+- Root container for multiple AWS accounts
+- **Master/Management Account**: Manages billing and organizational policies
+- **Organizational Units (OUs)**: Group accounts for easier management (e.g., Production, Development, Security)
+- **Member Accounts**: Individual AWS accounts within organization
+- **Service Control Policies (SCPs)**: Guardrails for account permissions
+- **Consolidated Billing**: Single bill for all accounts
+
+**2. AWS Account** (Account Level)
+- Isolated container for AWS resources
+- **Root User**: Full administrative access (should be secured with MFA)
+- **Account ID**: 12-digit unique identifier
+- **Billing Boundary**: Separate billing and cost allocation
+- **IAM Users/Roles**: Identities with specific permissions
+- **Resource Limits**: Service quotas per account
+
+**3. AWS Regions** (Geographic Level)
+- Geographic areas containing multiple Availability Zones
+- **Data Sovereignty**: Data remains within selected region
+- **Service Availability**: Not all services available in all regions
+- **Latency Optimization**: Choose regions close to users
+- **Disaster Recovery**: Deploy across multiple regions
+
+**4. Availability Zones (AZs)** (Infrastructure Level)
+- Isolated data centers within a region
+- **High Availability**: Deploy across multiple AZs
+- **Physical Separation**: Separate power, cooling, networking
+- **Low Latency**: High-speed connections between AZs
+
+**5. Resources** (Service Level)
+- Individual AWS services deployed within AZs/Regions
+- **Global Services**: IAM, CloudFront, Route 53 (no region)
+- **Regional Services**: S3, Lambda, DynamoDB
+- **Zonal Services**: EC2 instances, EBS volumes
+
+**6. Resource Naming and Identification**
+- **Amazon Resource Names (ARNs)**: Unique resource identifiers
+  - Format: `arn:partition:service:region:account-id:resource-type/resource-id`
+  - Example: `arn:aws:s3:::my-bucket/my-object`
+- **Tags**: Key-value pairs for resource organization
+  - Cost allocation and tracking
+  - Access control and automation
+  - Resource lifecycle management
+
+### AWS Well-Architected Framework
+Five pillars for building secure, high-performing, resilient, and efficient infrastructure:
+1. **Operational Excellence**: Running and monitoring systems
+2. **Security**: Protecting information and systems
+3. **Reliability**: Ensuring workload performs correctly
+4. **Performance Efficiency**: Using computing resources efficiently
+5. **Cost Optimization**: Avoiding unnecessary costs
+
+## Identity and Access Management (IAM)
+
+### Core Components
+- **Users**: Individual accounts for people or applications
+- **Groups**: Collections of users with similar permissions
+- **Roles**: Temporary permissions that can be assumed by trusted entities
+- **Policies**: JSON documents defining permissions
+
+### Key Concepts
+- **Principal**: Entity that can make requests (user, role, service)
+- **Action**: What can be performed (e.g., s3:GetObject)
+- **Resource**: AWS resource the action can be performed on
+- **Condition**: Circumstances under which policy applies
+- **Effect**: Allow or Deny for the policy statement
+- **Statement ID (Sid)**: Optional identifier for policy statements
+
+### Policy Types
+- **AWS Managed Policies**: Created and maintained by AWS
+- **Customer Managed Policies**: Created and maintained by you
+- **Inline Policies**: Directly attached to single user, group, or role
+- **Resource-based Policies**: Attached to resources (S3 bucket policies)
+- **Permission Boundaries**: Maximum permissions an entity can have
+- **Service Control Policies (SCPs)**: Organization-wide permission guardrails
+
+### Advanced IAM Features
+- **IAM Access Analyzer**: External access analysis and unused access findings
+- **IAM Credential Report**: Account-wide credential usage report
+- **IAM Access Advisor**: Service-level access activity
+- **Cross-Account Access**: AssumeRole for accessing resources across accounts
+- **Federation**: SAML 2.0, OpenID Connect, custom identity broker
+- **IAM Identity Center (SSO)**: Centralized access management
+
+### Multi-Factor Authentication (MFA)
+- **Virtual MFA Device**: Smartphone app (Google Authenticator, Authy)
+- **Hardware MFA Device**: Physical token (YubiKey)
+- **SMS Text Message**: Not recommended for root accounts
+- **U2F Security Key**: FIDO Alliance standard
+
+### Best Practices
+- Enable MFA for root account and privileged users
+- Use roles instead of sharing credentials
+- Apply principle of least privilege
+- Regularly rotate access keys
+- Use IAM Access Analyzer to review permissions
+- Monitor with CloudTrail and access patterns
+- Use temporary credentials whenever possible
+- Implement strong password policies
+
+## Virtual Private Cloud (VPC)
+
+### What is VPC?
+A logically isolated section of AWS cloud where you can launch resources in a virtual network you define. Think of it as your own private data center in the cloud.
+
+### Core Components
+
+#### Subnets
+- **Public Subnet**: Has direct route to Internet Gateway
+- **Private Subnet**: No direct internet access, uses NAT for outbound
+- **Database Subnet**: Typically private, isolated for database resources
+- Each subnet exists in one Availability Zone
+
+#### Internet Gateway (IGW)
+- Horizontally scaled, redundant, highly available VPC component
+- Allows communication between VPC and internet
+- Performs NAT for instances with public IP addresses
+- One IGW per VPC
+
+#### NAT Gateway/Instance
+- **NAT Gateway**: Managed service for outbound internet access from private subnets
+- **NAT Instance**: EC2 instance performing NAT (legacy approach)
+- Located in public subnet, allows private subnet resources to reach internet
+- Does not allow inbound connections from internet
+
+#### Route Tables
+- Contains rules (routes) determining where network traffic is directed
+- Each subnet must be associated with a route table
+- Main route table: Default for all subnets not explicitly associated
+
+#### Security Groups
+- Virtual firewall controlling inbound and outbound traffic
+- Stateful: Return traffic automatically allowed
+- Applied at instance level
+- Default: All outbound allowed, no inbound allowed
+- Up to 5 security groups per network interface
+- Can reference other security groups as sources/destinations
+- Rules evaluated as a whole (all allow rules)
+
+#### Network ACLs (NACLs)
+- Additional layer of security at subnet level
+- Stateless: Must explicitly allow return traffic
+- Numbered rules processed in order (1-32766)
+- Default: Allow all inbound and outbound
+- One NACL per subnet, but can be associated with multiple subnets
+- Separate rules for inbound and outbound traffic
+
+### VPC Flow Logs
+- Capture network traffic information for VPC, subnet, or ENI
+- Published to CloudWatch Logs, S3, or Kinesis Data Firehose
+- Monitor traffic patterns and troubleshoot connectivity
+- Custom flow log formats available
+- Can capture accepted, rejected, or all traffic
+
+### Elastic Network Interfaces (ENI)
+- Virtual network interface you can attach to instances
+- Includes private IPv4/IPv6 addresses, security groups
+- Can be moved between instances for failover
+- Hot-attach, warm-attach, or cold-attach
+
+### VPC Peering
+- Network connection between two VPCs
+- Route traffic privately using private IP addresses
+- No single point of failure or bandwidth bottleneck
+- Cannot peer overlapping CIDR blocks
+- Cross-region and cross-account peering supported
+- No transitive routing (hub-and-spoke requires multiple peerings)
+
+### Transit Gateway
+- Network transit hub connecting VPCs and on-premises networks
+- Simplifies network architecture (star configuration)
+- Supports thousands of VPC connections
+- Route tables for granular routing control
+- Cross-region peering and multicast support
+
+### VPC Endpoints
+Private connectivity to AWS services without internet gateway:
+
+```
+VPC Endpoints
+├── Gateway Endpoints (Free)
+│   ├── S3 (Simple Storage Service)
+│   │   ├── Route table entries
+│   │   ├── No data processing charges
+│   │   └── Policy-based access control
+│   └── DynamoDB
+│       ├── Route table entries
+│       ├── No additional network charges
+│       └── VPC-only access
+└── Interface Endpoints (PrivateLink)
+    ├── Most AWS Services (100+ services)
+    │   ├── Elastic Network Interface (ENI)
+    │   ├── Private IP in your subnet
+    │   ├── DNS resolution within VPC
+    │   └── Security group controls
+    ├── Pricing
+    │   ├── Endpoint hours ($0.01/hour)
+    │   └── Data processing ($0.01/GB)
+    └── Features
+        ├── Cross-AZ redundancy
+        ├── Policy-based access control
+        └── Private DNS names
+```
+
+### AWS PrivateLink
+- Private connectivity between VPCs and AWS services
+- Traffic doesn't traverse internet
+- Interface endpoints powered by PrivateLink
+- Can expose your own services to other VPCs
+
+### DHCP Options Sets
+- Configure DHCP for your VPC
+- Domain name, domain name servers, NTP servers
+- NetBIOS name servers and node type
+- One DHCP options set per VPC
+
+## Compute Services
+
+### EC2 (Elastic Compute Cloud)
+Virtual servers in the cloud with various instance types optimized for different use cases.
+
+#### Instance Types
+- **General Purpose**: t3, m5 (balanced CPU, memory, networking)
+- **Compute Optimized**: c5 (CPU-intensive applications)
+- **Memory Optimized**: r5, x1 (in-memory databases, real-time analytics)
+- **Storage Optimized**: i3, d2 (high I/O performance)
+- **Accelerated Computing**: p3, g4 (GPU workloads, ML)
+
+#### Pricing Models
+- **On-Demand**: Pay per hour/second, no commitment
+- **Reserved Instances**: 1-3 year commitment, up to 75% savings
+- **Spot Instances**: Bid on spare capacity, up to 90% savings
+- **Dedicated Hosts**: Physical server dedicated to your use
+
+#### Storage Options
+- **EBS (Elastic Block Store)**: Persistent, high availability block storage
+- **Instance Store**: Temporary storage physically attached to host
+- **EFS (Elastic File System)**: Managed NFS for multiple instances
+
+#### Instance Metadata and User Data
+- **Instance Metadata**: Information about running instance
+  - Accessible via http://169.254.169.254/latest/meta-data/
+  - Instance ID, AMI ID, security groups, IAM roles
+  - Instance Metadata Service v2 (IMDSv2) with session tokens
+- **User Data**: Bootstrap scripts run at instance launch
+  - Base64 encoded, up to 16 KB
+  - Run with root privileges
+  - Accessible via metadata service
+
+#### Placement Groups
+- **Cluster**: Low latency, high network performance (single AZ)
+- **Partition**: Spread across partitions (different hardware)
+- **Spread**: Small number of instances on distinct hardware
+
+#### EC2 Instance Lifecycle
+- **Pending**: Instance is launching
+- **Running**: Instance is running
+- **Stopping**: Instance is shutting down
+- **Stopped**: Instance is shut down
+- **Shutting-down**: Instance is terminating
+- **Terminated**: Instance is permanently deleted
+
+#### Auto Scaling Groups
+- Automatically adjust number of instances
+- Health checks and instance replacement
+- Integration with ELB health checks
+- Scaling policies based on metrics
+- Scheduled scaling for predictable workloads
+- Lifecycle hooks for custom actions
+
+#### Elastic Load Balancing
+- **Application Load Balancer (ALB)**: Layer 7, HTTP/HTTPS
+  - Content-based routing, WebSocket support
+  - Target groups: instances, IP addresses, Lambda functions
+- **Network Load Balancer (NLB)**: Layer 4, TCP/UDP
+  - Ultra-high performance, static IP addresses
+  - Preserve source IP address
+- **Gateway Load Balancer (GWLB)**: Layer 3, network traffic
+  - Deploy third-party network appliances
+- **Classic Load Balancer (CLB)**: Legacy, Layer 4 and 7
+
+#### AMI (Amazon Machine Image)
+- Template for launching instances
+- Includes OS, applications, and configuration
+- Can be public, private, or shared
+- AMI lifecycle: create, copy, share, deprecate
+- EBS-backed vs Instance Store-backed AMIs
+
+### Lambda
+Serverless compute service running code without managing servers.
+
+#### Key Features
+- Automatic scaling based on requests
+- Pay only for compute time consumed
+- Supports multiple programming languages
+- Event-driven execution
+- 15-minute maximum execution time
+
+#### Runtime Support
+- **Native Runtimes**: Python, Node.js, Java, .NET, Go, Ruby
+- **Custom Runtimes**: Using Runtime API
+- **Container Images**: Deploy functions as container images
+
+#### Lambda Layers
+Share code and dependencies across multiple functions:
+
+```
+Lambda Function
+├── Function Code (Required)
+│   ├── Handler function
+│   ├── Business logic
+│   └── Function-specific code
+├── Lambda Layers (Up to 5 per function)
+│   ├── Layer 1: Runtime Dependencies
+│   │   ├── Python packages (requests, boto3)
+│   │   ├── Node.js modules (express, lodash)
+│   │   └── Java libraries (.jar files)
+│   ├── Layer 2: Custom Runtime
+│   │   ├── Custom language runtime
+│   │   ├── Runtime bootstrap scripts
+│   │   └── Runtime configuration
+│   ├── Layer 3: Application Libraries
+│   │   ├── Internal company libraries
+│   │   ├── Shared utility functions
+│   │   └── Common configurations
+│   ├── Layer 4: Monitoring/Observability
+│   │   ├── APM agents (New Relic, DataDog)
+│   │   ├── Logging libraries
+│   │   └── Metrics collection tools
+│   └── Layer 5: Security/Compliance
+│       ├── Encryption libraries
+│       ├── Authentication helpers
+│       └── Compliance tools
+└── Benefits
+    ├── Reduced deployment package size
+    ├── Faster deployment times
+    ├── Version management per layer
+    ├── Share common code across functions
+    └── Separate development workflows
+```
+
+#### Event Sources
+- **Synchronous**: API Gateway, ALB, CloudFront
+- **Asynchronous**: S3, SNS, EventBridge
+- **Stream-based**: Kinesis Data Streams, DynamoDB Streams
+- **Poll-based**: SQS, MSK, self-managed Apache Kafka
+
+#### Configuration Options
+- **Memory**: 128 MB to 10,240 MB (affects CPU allocation)
+- **Timeout**: 1 second to 15 minutes
+- **Environment Variables**: Configuration without code changes
+- **VPC Configuration**: Access resources in private subnets
+- **Dead Letter Queues**: Handle failed async invocations
+- **Reserved Concurrency**: Limit or guarantee function capacity
+- **Provisioned Concurrency**: Pre-warm functions for consistent performance
+
+#### Lambda@Edge
+- Run code at CloudFront edge locations
+- Customize content delivery
+- Viewer request/response, origin request/response events
+- Lower latency for global applications
+
+#### Error Handling and Retry
+- **Synchronous**: Client handles errors and retries
+- **Asynchronous**: Lambda retries (2 attempts), then DLQ
+- **Stream-based**: Lambda retries until success or expiry
+
+#### Use Cases
+- Real-time file processing
+- Web application backends
+- IoT data processing
+- Scheduled tasks (cron jobs)
+- Image/video processing
+- Real-time stream processing
+- Chatbots and voice assistants
+
+### ECS (Elastic Container Service)
+Fully managed container orchestration service.
+
+#### Launch Types
+- **EC2**: Run containers on EC2 instances you manage
+  - You manage the underlying infrastructure
+  - More control over compute environment
+  - Can use Spot instances for cost savings
+- **Fargate**: Serverless containers, AWS manages infrastructure
+  - No server management required
+  - Pay only for compute resources used
+  - Automatic scaling and patching
+
+#### Core Components
+- **Task Definition**: Blueprint for running containers
+  - CPU and memory requirements
+  - Container image and port mappings
+  - Environment variables and secrets
+  - IAM task role and execution role
+  - Network mode and logging configuration
+  - Volume mounts and storage
+- **Task**: Running instance of task definition
+- **Service**: Ensures desired number of tasks running
+  - Auto Scaling based on metrics
+  - Load balancer integration
+  - Service discovery with AWS Cloud Map
+  - Rolling updates and deployments
+- **Cluster**: Logical grouping of compute resources
+  - Can span multiple AZs
+  - Container Insights for monitoring
+
+#### Container Agent
+- Runs on each EC2 instance in ECS cluster
+- Communicates with ECS service
+- Starts and stops containers
+- Monitors resource utilization
+
+#### Service Discovery
+- AWS Cloud Map integration
+- DNS-based service discovery
+- Service mesh compatibility
+- Health checking and failover
+
+#### Deployment Strategies
+- **Rolling Update**: Gradually replace tasks
+- **Blue/Green**: Deploy to new instances, switch traffic
+- **Circuit Breaker**: Stop deployment on failures
+
+#### ECS Anywhere
+- Run ECS tasks on customer-managed infrastructure
+- Hybrid and on-premises container management
+- Consistent APIs and tooling
+
+### EKS (Elastic Kubernetes Service)
+Managed Kubernetes service for running containerized applications.
+
+#### EKS Architecture
+```
+EKS Cluster
+├── Control Plane (AWS Managed)
+│   ├── API Server
+│   ├── etcd Database
+│   ├── Controller Manager
+│   └── Scheduler
+├── Data Plane (Customer Managed)
+│   ├── Managed Node Groups
+│   │   ├── EC2 Instances
+│   │   ├── Auto Scaling Groups
+│   │   └── Launch Templates
+│   ├── Fargate Profiles
+│   │   ├── Serverless Pods
+│   │   ├── No Node Management
+│   │   └── Per-Pod Billing
+│   └── Self-Managed Nodes
+│       ├── Custom AMIs
+│       ├── Advanced Configuration
+│       └── Full Control
+└── Add-ons
+    ├── VPC CNI Plugin
+    ├── CoreDNS
+    ├── kube-proxy
+    └── AWS Load Balancer Controller
+```
+
+#### Key Features
+- **Multi-AZ Control Plane**: Highly available across 3 AZs
+- **IAM Integration**: Native AWS IAM for authentication
+- **VPC Integration**: Secure networking with VPC
+- **Fargate Support**: Serverless container execution
+- **Managed Node Groups**: Automated node lifecycle management
+- **Service Mesh**: AWS App Mesh integration
+- **Observability**: CloudWatch Container Insights
+
+#### Security Features
+- **Pod Security Standards**: Kubernetes security policies
+- **IRSA (IAM Roles for Service Accounts)**: Fine-grained permissions
+- **Secrets Management**: Integration with AWS Secrets Manager
+- **Network Policies**: Calico network policies
+- **Image Scanning**: ECR vulnerability scanning
+
+#### Cluster Management
+- **Cluster Autoscaler**: Automatic node scaling
+- **Horizontal Pod Autoscaler**: Pod-level auto-scaling
+- **Vertical Pod Autoscaler**: Resource optimization
+- **Cluster Upgrades**: In-place Kubernetes version upgrades
+- **Add-on Management**: Managed add-ons with versioning
+
+## Storage Services
+
+### S3 (Simple Storage Service)
+Object storage service offering industry-leading scalability, data availability, security, and performance.
+
+#### Storage Classes
+Optimize costs based on access patterns and durability requirements:
+
+```
+S3 Storage Classes
+├── Frequent Access
+│   └── Standard
+│       ├── 99.999999999% (11 9's) durability
+│       ├── 99.99% availability SLA
+│       ├── Low latency and high throughput
+│       └── No minimum storage duration
+├── Intelligent Optimization
+│   └── Intelligent-Tiering
+│       ├── Automatic tier transitions
+│       ├── Monitors access patterns (30+ days)
+│       ├── Frequent Access tier
+│       ├── Infrequent Access tier
+│       ├── Archive Instant Access tier
+│       ├── Archive Access tier (90-270 days)
+│       ├── Deep Archive Access tier (180+ days)
+│       └── Small object monitoring fee
+├── Infrequent Access
+│   ├── Standard-IA
+│   │   ├── Lower storage cost, higher retrieval cost
+│   │   ├── 30-day minimum storage duration
+│   │   ├── 99.9% availability SLA
+│   │   └── Multi-AZ storage
+│   └── One Zone-IA
+│       ├── 20% less cost than Standard-IA
+│       ├── Single AZ storage
+│       ├── 99.5% availability SLA
+│       └── 30-day minimum storage duration
+└── Archive Storage
+    ├── Glacier Instant Retrieval
+    │   ├── Millisecond retrieval
+    │   ├── 90-day minimum storage duration
+    │   ├── Same performance as Standard-IA
+    │   └── 40% less cost than Standard-IA
+    ├── Glacier Flexible Retrieval
+    │   ├── Retrieval Options:
+    │   │   ├── Expedited (1-5 minutes)
+    │   │   ├── Standard (3-5 hours)
+    │   │   └── Bulk (5-12 hours)
+    │   ├── 90-day minimum storage duration
+    │   └── Up to 10% less cost than Glacier Instant
+    └── Glacier Deep Archive
+        ├── Retrieval Options:
+        │   ├── Standard (12 hours)
+        │   └── Bulk (48 hours)
+        ├── 180-day minimum storage duration
+        ├── Lowest cost storage class
+        └── Up to 75% less cost than Glacier Flexible
+```
+
+#### Lifecycle Management
+- Automatically transition objects between storage classes
+- Delete objects after specified time
+- Rules based on prefixes and tags
+- Incomplete multipart upload cleanup
+- Current and previous versions management
+- Filter by object size
+
+#### Versioning
+- Keep multiple versions of objects
+- Protect against accidental deletion/modification
+- Version ID for each object version
+- Can be suspended (not disabled)
+- MFA Delete for additional protection
+- Lifecycle rules can manage versions
+
+#### Server-Side Encryption
+- **SSE-S3**: Amazon S3 managed keys (AES-256)
+- **SSE-KMS**: AWS KMS managed keys
+  - Additional audit trail via CloudTrail
+  - User control over key rotation
+  - Can use customer managed keys
+- **SSE-C**: Customer provided keys
+  - Customer manages encryption keys
+  - AWS performs encryption/decryption
+- **DSSE-KMS**: Dual-layer encryption with KMS
+
+#### Cross-Region Replication (CRR) & Same-Region Replication (SRR)
+- Automatic replication of objects
+- Different storage classes for replicas
+- Replica Time Control (RTC) for predictable replication
+- Replication of delete markers and versions
+- Cross-account replication supported
+- Bi-directional replication rules
+
+#### Access Control
+- **Bucket Policies**: JSON-based resource policies
+- **Access Control Lists (ACLs)**: Legacy access control
+- **IAM Policies**: User-based permissions
+- **Access Points**: Named network endpoints for buckets
+- **Object Ownership**: Control object ownership and ACLs
+- **Block Public Access**: Account and bucket level settings
+
+#### S3 Transfer Acceleration
+- Uses CloudFront edge locations
+- Faster uploads to S3 buckets
+- Compatible with multipart uploads
+- Speed comparison tool available
+
+#### S3 Event Notifications
+- Trigger actions when objects are created, deleted, etc.
+- Destinations: SNS, SQS, Lambda
+- Filter by prefix, suffix, or content type
+- EventBridge for advanced routing
+
+#### Multipart Upload
+- Upload large objects in parts
+- Improved throughput and resilience
+- Parallel uploads of parts
+- Minimum part size: 5MB (except last part)
+- Maximum 10,000 parts per object
+
+#### S3 Batch Operations
+- Perform actions on billions of objects
+- Built-in operations: copy, tag, ACL, restore
+- Custom operations with Lambda
+- Job completion reports
+
+#### S3 Object Lock
+- Write Once Read Many (WORM) model
+- **Governance Mode**: Can't delete with special permissions
+- **Compliance Mode**: Can't delete until retention period
+- Legal hold for indefinite retention
+- Requires versioning enabled
+
+#### S3 Analytics and Insights
+- **Storage Class Analysis**: Optimize storage class transitions
+- **S3 Inventory**: Report on objects and metadata
+- **CloudWatch Metrics**: Monitor request rates and errors
+- **Access Logging**: Log requests to bucket
+- **CloudTrail**: API-level logging
+
+#### Performance Optimization
+- Request rate: 3,500 PUT/COPY/POST/DELETE, 5,500 GET/HEAD per prefix
+- Multipart upload for objects >100MB
+- Range GETs for large objects
+- Use CloudFront for frequently accessed content
+- Avoid sequential key names for high request rates
+
+#### S3 Select
+- Retrieve subset of object data using SQL
+- Works with CSV, JSON, and Parquet
+- Reduce data transfer and costs
+- Server-side filtering
+
+#### Key Features Summary
+- 99.999999999% (11 9's) durability
+- Virtually unlimited storage capacity
+- Versioning and lifecycle management
+- Server-side encryption
+- Cross-region replication
+- Event notifications and triggers
+- Strong consistency model
+- Pay-as-you-go pricing
+
+### EBS (Elastic Block Store)
+High-performance block storage for EC2 instances.
+
+#### Volume Types
+- **gp3 (General Purpose SSD)**: Latest generation
+  - 3,000 IOPS baseline, up to 16,000 IOPS
+  - 125 MiB/s baseline throughput, up to 1,000 MiB/s
+  - Independent IOPS and throughput provisioning
+  - 1 GiB - 16 TiB size range
+- **gp2 (General Purpose SSD)**: Previous generation
+  - 3 IOPS per GiB, burst to 3,000 IOPS
+  - Baseline throughput based on volume size
+  - 1 GiB - 16 TiB size range
+- **io2 (Provisioned IOPS SSD)**: Latest high-performance
+  - Up to 64,000 IOPS and 1,000 MiB/s throughput
+  - 99.999% durability (higher than other types)
+  - Sub-millisecond latency
+  - 4 GiB - 16 TiB, up to 500 IOPS per GiB
+- **io1 (Provisioned IOPS SSD)**: Previous high-performance
+  - Up to 64,000 IOPS and 1,000 MiB/s throughput
+  - 4 GiB - 16 TiB, up to 50 IOPS per GiB
+- **st1 (Throughput Optimized HDD)**: Low-cost, high throughput
+  - Up to 500 MiB/s throughput
+  - Burst performance model
+  - 125 GiB - 16 TiB, big data and data warehouses
+- **sc1 (Cold HDD)**: Lowest cost
+  - Up to 250 MiB/s throughput
+  - Infrequently accessed data
+  - 125 GiB - 16 TiB
+
+#### EBS Snapshots
+- Point-in-time snapshots stored in S3
+- Incremental backups (only changed blocks)
+- Cross-region and cross-account copying
+- Fast Snapshot Restore (FSR) for instant access
+- EBS Direct APIs for direct snapshot access
+- Snapshot lifecycle management with Data Lifecycle Manager
+- Recycle Bin for accidental deletion protection
+
+#### Encryption
+- **Encryption at Rest**: AES-256 encryption
+- **Encryption in Transit**: Between instance and volume
+- **Key Management**: AWS managed or customer managed KMS keys
+- **Boot Volume Encryption**: Supported for all volume types
+- **Snapshot Encryption**: Encrypted volumes create encrypted snapshots
+- **Copy and Share**: Encrypted snapshots can be shared across accounts
+
+#### Multi-Attach
+- Available for io1 and io2 volumes
+- Attach single volume to multiple instances
+- All instances must be in same AZ
+- Cluster-aware file systems required
+- Up to 16 instances per volume
+
+#### Performance Features
+- **EBS-Optimized Instances**: Dedicated bandwidth for EBS
+- **Nitro System**: Enhanced networking and storage performance
+- **NVMe Interface**: Lower latency access
+- **CloudWatch Integration**: Detailed monitoring metrics
+
+#### Volume Management
+- **Elastic Volumes**: Modify size, performance, and type online
+- **Volume Recovery**: Automatic recovery from drive failures
+- **Hibernation Support**: Save instance state to EBS root volume
+- **Root Volume Replacement**: Replace root volume without stopping instance
+
+#### Data Lifecycle Manager (DLM)
+- Automate EBS snapshot creation and deletion
+- Schedule-based or event-based policies
+- Cross-region copy automation
+- Resource tagging for policy targeting
+- Integration with Amazon EventBridge
+
+#### EBS Direct APIs
+- Direct access to EBS snapshot data
+- Read snapshot data without creating volumes
+- Incremental data transfer
+- Custom backup and disaster recovery solutions
+
+### EFS (Elastic File System)
+Fully managed NFS file system for EC2 instances.
+
+#### Benefits
+- Scales automatically from gigabytes to petabytes
+- Concurrent access from multiple instances
+- Regional service spanning multiple AZs
+- POSIX-compliant file system
+
+## Database Services
+
+### RDS (Relational Database Service)
+Managed relational database service supporting multiple database engines.
+
+#### Supported Engines
+- **Amazon Aurora** (MySQL and PostgreSQL compatible)
+  - Cloud-native, up to 5x faster than MySQL, 3x faster than PostgreSQL
+  - Aurora Serverless v1 and v2 for variable workloads
+  - Aurora Global Database for global applications
+  - Aurora Multi-Master for write scaling
+- **MySQL** (5.7, 8.0)
+- **PostgreSQL** (11, 12, 13, 14, 15)
+- **MariaDB** (10.4, 10.5, 10.6)
+- **Oracle Database** (12c, 19c, 21c)
+  - Bring Your Own License (BYOL) or License Included
+- **Microsoft SQL Server** (2017, 2019, 2022)
+  - Express, Web, Standard, Enterprise editions
+
+#### Deployment Options
+- **Single-AZ**: Single database instance
+- **Multi-AZ**: Synchronous replication for high availability
+  - Automatic failover to standby
+  - Enhanced durability and availability
+  - No performance impact for primary
+- **Multi-AZ Cluster**: Up to 2 readable standby instances
+  - Available for MySQL and PostgreSQL
+  - Faster failover (under 35 seconds)
+
+#### Read Replicas
+- **Cross-AZ, Cross-Region**: Scale read workloads
+- **Asynchronous Replication**: Eventual consistency
+- **Multiple Read Replicas**: Up to 5 per source DB (15 for Aurora)
+- **Promotion**: Can be promoted to standalone DB
+- **Different Instance Types**: Optimize for read workloads
+
+#### Backup and Recovery
+- **Automated Backups**: Point-in-time recovery up to 35 days
+- **Manual Snapshots**: User-initiated, persist until deleted
+- **Cross-Region Backup**: Automated snapshots copied to other regions
+- **Backup Retention**: 0-35 days for automated backups
+- **Restoration**: Create new DB instance from backup
+
+#### Security Features
+- **Encryption at Rest**: KMS encryption for storage and snapshots
+- **Encryption in Transit**: SSL/TLS connections
+- **Network Isolation**: VPC with subnets and security groups
+- **IAM Authentication**: Database access using IAM roles
+- **Kerberos Authentication**: For SQL Server and Oracle
+- **Transparent Data Encryption (TDE)**: For SQL Server and Oracle
+
+#### Performance Monitoring
+- **Enhanced Monitoring**: OS-level metrics via CloudWatch
+- **Performance Insights**: Database performance analysis
+- **CloudWatch Integration**: Database and OS metrics
+- **Database Activity Streams**: Near real-time monitoring
+
+#### Maintenance and Patching
+- **Maintenance Windows**: Scheduled maintenance periods
+- **Automatic Minor Version Upgrades**: Optional automatic updates
+- **Major Version Upgrades**: Manual process with testing
+- **Blue/Green Deployments**: Zero-downtime deployments
+
+#### Connection Management
+- **RDS Proxy**: Connection pooling and management
+  - Reduce connection overhead
+  - Improve failover times
+  - IAM and Secrets Manager integration
+- **Connection Limits**: Based on instance class
+
+#### Parameter Groups
+- **DB Parameter Groups**: Engine configuration parameters
+- **DB Cluster Parameter Groups**: Aurora cluster settings
+- **Custom Parameter Groups**: Customize engine behavior
+- **Dynamic vs Static**: Parameters requiring restart
+
+#### Option Groups
+- **Engine-Specific Features**: Additional functionality
+- **Oracle**: Advanced Security, APEX, OEM
+- **SQL Server**: SQL Server Agent, SSIS, SSRS
+- **MySQL/MariaDB**: memcached, audit plugins
+
+#### Database Subnet Groups
+- **VPC Configuration**: Specify subnets for RDS deployment
+- **Multi-AZ Requirements**: Subnets in different AZs
+- **Private Subnets**: Database isolation from internet
+
+#### Reserved Instances
+- **1 or 3 Year Terms**: Significant cost savings
+- **Payment Options**: All upfront, partial upfront, no upfront
+- **Instance Flexibility**: Size flexibility within family
+
+#### Aurora Specific Features
+- **Storage Auto-Scaling**: Up to 128 TiB automatically
+- **Aurora Replicas**: Up to 15 read replicas
+- **Custom Endpoints**: Reader and writer endpoints
+- **Parallel Query**: Analytical queries on Aurora MySQL
+- **Backtrack**: Rewind database to previous time (MySQL)
+- **Clone**: Create copy of database quickly and cost-effectively
+
+### DynamoDB
+Fully managed NoSQL database service.
+
+#### Core Concepts
+- **Tables**: Collection of items (like rows in relational DB)
+- **Items**: Collection of attributes (like rows)
+- **Attributes**: Data elements (like columns)
+- **Primary Key**: Partition key or partition key + sort key
+- **Secondary Indexes**: Alternative query patterns
+
+#### Billing Modes
+- **On-Demand**: Pay per request, automatic scaling
+  - No capacity planning required
+  - Instant scaling up and down
+  - Pay for only what you use
+- **Provisioned**: Pre-allocated read/write capacity
+  - Predictable performance and costs
+  - Auto Scaling available
+  - Reserved capacity for additional savings
+
+#### Primary Key Types
+- **Partition Key**: Simple primary key, must be unique
+- **Composite Key**: Partition key + sort key combination
+  - Multiple items can have same partition key
+  - Sort key must be unique within partition
+
+#### Secondary Indexes
+- **Global Secondary Index (GSI)**:
+  - Different partition key and optional sort key
+  - Own provisioned throughput settings
+  - Eventually consistent reads
+  - Can be created anytime
+- **Local Secondary Index (LSI)**:
+  - Same partition key, different sort key
+  - Shares throughput with base table
+  - Strongly consistent reads available
+  - Must be created at table creation
+
+#### Consistency Models
+- **Eventually Consistent Reads**: Default, may not reflect recent writes
+- **Strongly Consistent Reads**: Returns most up-to-date data
+- **Transactional Reads**: ACID transactions across items
+
+#### DynamoDB Transactions
+- **TransactWriteItems**: Up to 25 items across tables
+- **TransactReadItems**: Up to 25 items with snapshot isolation
+- **ACID Properties**: Atomicity, Consistency, Isolation, Durability
+- **Conditional Operations**: Prevent conflicts
+
+#### DynamoDB Streams
+- **Change Data Capture**: Record data modification events
+- **Stream Records**: Item-level changes with before/after images
+- **Integration**: Lambda, Kinesis Client Library
+- **Retention**: 24-hour retention period
+- **Shard Management**: Automatic scaling and management
+
+#### Global Tables
+- **Multi-Region Replication**: Active-active replication
+- **Last Writer Wins**: Conflict resolution
+- **Eventually Consistent**: Cross-region consistency
+- **Local Read/Write**: Low latency access globally
+
+#### Backup and Restore
+- **On-Demand Backup**: Full table backups
+- **Point-in-Time Recovery (PITR)**: Restore to any second in last 35 days
+- **Cross-Region Backup**: Copy backups to other regions
+- **Automatic Backups**: Continuous backups with PITR
+
+#### DynamoDB Accelerator (DAX)
+- **In-Memory Cache**: Microsecond latency for reads
+- **Write-Through Cache**: Automatic cache population
+- **Multi-AZ**: High availability across AZs
+- **Encryption**: At rest and in transit
+- **VPC Endpoints**: Private connectivity
+
+#### Security Features
+- **Encryption at Rest**: KMS managed keys
+- **Encryption in Transit**: HTTPS/TLS
+- **IAM Integration**: Fine-grained access control
+- **VPC Endpoints**: Private network access
+- **Resource-Based Policies**: Cross-account access
+- **CloudTrail Integration**: API call logging
+
+#### Performance Features
+- **Auto Scaling**: Automatic capacity adjustment
+- **Burst Capacity**: Handle traffic spikes
+- **Adaptive Capacity**: Distribute hot partitions
+- **Contributor Insights**: Identify most accessed items
+
+#### Data Types
+- **Scalar**: String, Number, Binary, Boolean, Null
+- **Document**: List, Map
+- **Set**: String Set, Number Set, Binary Set
+- **TTL**: Time to Live for automatic item expiration
+
+#### Query Operations
+- **GetItem**: Retrieve single item by primary key
+- **Query**: Find items with same partition key
+- **Scan**: Examine every item in table
+- **BatchGetItem**: Retrieve up to 100 items
+- **BatchWriteItem**: Put or delete up to 25 items
+
+#### Conditional Operations
+- **Condition Expressions**: Prevent overwrites
+- **Update Expressions**: Modify attributes atomically
+- **Projection Expressions**: Return only specified attributes
+- **Filter Expressions**: Filter results after query/scan
+
+#### PartiQL Support
+- **SQL-Like Queries**: Familiar syntax for DynamoDB
+- **Select, Insert, Update, Delete**: Standard SQL operations
+- **Batch Operations**: Multiple statements in single request
+
+#### Key Features Summary
+- Single-digit millisecond performance at any scale
+- Automatic scaling based on traffic patterns
+- Built-in security, backup, and restore
+- Global tables for multi-region deployment
+- On-demand and provisioned billing modes
+- Serverless architecture
+- Integration with AWS services
+
+### ElastiCache
+In-memory caching service supporting Redis and Memcached.
+
+## Networking
+
+### CloudFront
+Global content delivery network (CDN) service.
+
+#### Benefits
+- Low latency content delivery
+- DDoS protection
+- SSL/TLS encryption
+- Integration with AWS services
+- Custom domain support
+
+### Route 53
+Scalable domain name system (DNS) web service.
+
+#### Features
+- Domain registration
+- DNS routing
+- Health checking
+- Traffic flow (visual editor for routing)
+- Resolver (hybrid DNS)
+
+### Direct Connect
+Dedicated network connection from on-premises to AWS.
+
+#### Benefits
+- Consistent network performance
+- Reduced bandwidth costs
+- Private connectivity to VPC
+- Support for VLANs
+
+## Security
+
+### AWS Shield
+DDoS protection service.
+
+#### Tiers
+- **Standard**: Automatic protection against common attacks (free)
+- **Advanced**: Enhanced protection and 24/7 DDoS response team
+
+### WAF (Web Application Firewall)
+Protects web applications from common web exploits.
+
+#### Features
+- SQL injection protection
+- Cross-site scripting (XSS) protection
+- Rate limiting
+- Geographic blocking
+- Custom rules
+
+### KMS (Key Management Service)
+Managed service for creating and managing encryption keys.
+
+#### Key Types
+- **AWS Managed Keys**: Created and managed by AWS services
+  - Free to use, automatic rotation
+  - Key policy managed by AWS
+  - Cannot be deleted or disabled
+- **Customer Managed Keys**: Created and managed by you
+  - Full control over key policy and usage
+  - Manual or automatic rotation (annual)
+  - Can be deleted or disabled
+- **AWS Owned Keys**: Used by AWS services, not visible to customers
+  - No additional charges
+  - Used for default encryption
+
+#### Key Specifications
+- **Symmetric Keys**: Single key for encrypt/decrypt (AES-256)
+- **Asymmetric Keys**: Key pairs for encrypt/decrypt or sign/verify
+  - RSA key pairs (2048, 3072, 4096 bits)
+  - Elliptic curve key pairs (ECC_NIST_P256, ECC_NIST_P384, ECC_NIST_P521)
+  - ECDSA and RSA key pairs for signing
+
+#### Key Usage
+- **ENCRYPT_DECRYPT**: Symmetric encryption operations
+- **SIGN_VERIFY**: Asymmetric signing operations
+- **Key Usage Policies**: Control how keys can be used
+
+#### Key Policies
+- **JSON-based Policies**: Define who can use and manage keys
+- **Principal**: AWS accounts, IAM users/roles, AWS services
+- **Actions**: kms:Encrypt, kms:Decrypt, kms:GenerateDataKey
+- **Resources**: Key ARNs and aliases
+- **Conditions**: Additional context for access control
+
+#### Key Rotation
+- **Automatic Rotation**: Annual rotation for customer managed keys
+- **Manual Rotation**: Create new key version manually
+- **Rotation History**: Track key versions and rotation dates
+- **Backward Compatibility**: Old versions remain for decryption
+
+#### Data Keys
+- **GenerateDataKey**: Create data encryption key
+- **Encrypt/Decrypt Data**: Use data keys for client-side encryption
+- **Data Key Caching**: Improve performance with AWS Encryption SDK
+- **Envelope Encryption**: Encrypt data keys with KMS keys
+
+#### Multi-Region Keys
+- **Primary Key**: Original key in home region
+- **Replica Keys**: Copies in other regions
+- **Synchronized**: Same key material and key ID
+- **Independent Policies**: Different key policies per region
+- **Disaster Recovery**: Failover capabilities
+
+#### Key Stores
+- **AWS KMS**: Default key store with AWS managed HSMs
+- **Custom Key Store**: Your own CloudHSM cluster
+  - Dedicated HSM for your keys
+  - Single-tenant key storage
+  - Your own HSM certificates
+
+#### Integration with AWS Services
+- **S3**: Server-side encryption with KMS keys
+- **EBS**: Volume and snapshot encryption
+- **RDS**: Database encryption at rest
+- **Lambda**: Environment variable encryption
+- **Secrets Manager**: Secret encryption
+- **Parameter Store**: Secure string parameters
+
+#### Monitoring and Auditing
+- **CloudTrail Integration**: Log all KMS API calls
+- **CloudWatch Metrics**: Key usage metrics
+- **Key Usage Grants**: Delegate key usage permissions
+- **Grant Tokens**: Temporary access for key operations
+
+#### Import Your Own Key (BYOK)
+- **Key Material Import**: Import your own key material
+- **Key Wrapping**: Encrypt key material for import
+- **Expiration**: Set expiration for imported keys
+- **Delete Key Material**: Remove imported key material
+
+#### Cross-Account Access
+- **Key Policies**: Grant access to other AWS accounts
+- **Cross-Account Grants**: Programmatic access delegation
+- **ViaService Condition**: Restrict access through specific services
+
+#### Features Summary
+- Hardware security modules (HSMs)
+- Audit key usage with CloudTrail
+- Integration with AWS services
+- Customer managed keys
+- AWS managed keys
+- Automatic and manual key rotation
+- Multi-region key replication
+- Fine-grained access control
+
+### Secrets Manager
+Managed service for storing and retrieving secrets.
+
+#### Benefits
+- Automatic rotation of secrets
+- Fine-grained access control
+- Audit secret access
+- Integration with RDS and other services
+
+## Monitoring and Logging
+
+### CloudWatch
+Monitoring and observability service.
+
+#### CloudWatch Metrics
+- **Basic Monitoring**: 5-minute intervals (free)
+- **Detailed Monitoring**: 1-minute intervals (additional cost)
+- **Custom Metrics**: Application and business metrics
+- **High-Resolution Metrics**: Sub-minute intervals (1 second)
+- **Metric Filters**: Extract metrics from log data
+- **Composite Alarms**: Combine multiple alarms
+
+#### CloudWatch Logs
+- **Log Groups**: Container for log streams
+- **Log Streams**: Sequence of log events from same source
+- **Log Events**: Timestamped messages
+- **Retention Settings**: 1 day to 10 years, never expire
+- **Log Insights**: Interactive log analytics
+- **Subscription Filters**: Real-time log processing
+- **Cross-Account Log Sharing**: Share logs across accounts
+
+#### CloudWatch Alarms
+- **Metric Alarms**: Based on metric values
+- **Composite Alarms**: Combine multiple alarms with logic
+- **Alarm States**: OK, ALARM, INSUFFICIENT_DATA
+- **Alarm Actions**: SNS, Auto Scaling, EC2 actions
+- **Alarm History**: Track state changes
+- **Missing Data Treatment**: How to handle missing data points
+
+#### CloudWatch Events (EventBridge)
+- **Event Sources**: AWS services, custom applications
+- **Event Rules**: Match events and route to targets
+- **Event Targets**: Lambda, SNS, SQS, Kinesis, etc.
+- **Custom Events**: Send custom events to EventBridge
+- **Scheduled Events**: Cron-like scheduling
+- **Cross-Account Events**: Share events across accounts
+
+#### CloudWatch Dashboards
+- **Widgets**: Visualize metrics and logs
+- **Widget Types**: Line, stacked area, number, text
+- **Custom Dashboards**: Organize widgets by application/service
+- **Sharing**: Share dashboards with other users
+- **Auto-refresh**: Automatic dashboard updates
+
+#### CloudWatch Synthetics
+- **Canaries**: Monitor endpoints and APIs
+- **Runtime Versions**: Node.js and Python
+- **Blueprint Canaries**: Pre-built monitoring scripts
+- **Visual Monitoring**: Screenshot comparison
+- **Performance Metrics**: Load time, availability
+
+#### CloudWatch Application Insights
+- **Application Monitoring**: Monitor .NET and SQL Server apps
+- **Automated Setup**: Discover and configure monitoring
+- **Problem Detection**: ML-powered anomaly detection
+- **Root Cause Analysis**: Correlate metrics and logs
+
+#### CloudWatch Container Insights
+- **ECS and EKS Monitoring**: Container and cluster metrics
+- **Performance Monitoring**: CPU, memory, network, storage
+- **Log Aggregation**: Container logs in CloudWatch Logs
+- **Built-in Dashboards**: Pre-configured monitoring views
+
+#### CloudWatch Lambda Insights
+- **Lambda Function Monitoring**: Performance and cost optimization
+- **Cold Start Detection**: Identify initialization latency
+- **Memory Usage**: Right-size function memory
+- **Duration and Cost**: Track execution metrics
+
+#### Components Summary
+- **Metrics**: Performance data from AWS services
+- **Logs**: Centralized log management
+- **Alarms**: Notifications based on metric thresholds
+- **Events**: React to changes in AWS resources
+- **Dashboards**: Customizable monitoring views
+- **X-Ray Integration**: Distributed request tracing
+- **Service Lens**: Service map and traces
+
+### CloudTrail
+Service for governance, compliance, and audit of AWS account activity.
+
+#### Features
+- Records API calls made in your AWS account
+- File integrity validation
+- Multi-region logging
+- Integration with CloudWatch Logs
+
+### AWS Config
+Service for assessing, auditing, and evaluating AWS resource configurations.
+
+#### Use Cases
+- Compliance monitoring
+- Security analysis
+- Change tracking
+- Troubleshooting
+
+## DevOps and CI/CD
+
+### CodeCommit
+Fully managed source control service hosting Git repositories.
+
+### CodeBuild
+Fully managed continuous integration service.
+
+#### Features
+- Scales automatically
+- Pay only for build time
+- Supports multiple programming languages
+- Integration with other AWS services
+
+### CodeDeploy
+Automated deployment service for applications.
+
+#### Deployment Types
+- In-place: Updates instances with new application version
+- Blue/green: Deploys to new instances, then shifts traffic
+
+### CodePipeline
+Continuous integration and continuous delivery service.
+
+#### Benefits
+- Visual workflow for release process
+- Integration with third-party tools
+- Parallel execution of actions
+- Automated testing and deployment
+
+### CloudFormation
+Infrastructure as Code service using templates.
+
+#### Template Components
+- **AWSTemplateFormatVersion**: Template format version
+- **Description**: Template description
+- **Parameters**: Input values for template
+- **Mappings**: Static lookup tables
+- **Conditions**: Control resource creation
+- **Resources**: AWS resources to create (required)
+- **Outputs**: Return values from stack
+- **Metadata**: Additional information about template
+
+#### Template Formats
+- **JSON**: JavaScript Object Notation
+- **YAML**: YAML Ain't Markup Language (more readable)
+
+#### Stack Operations
+- **Create Stack**: Deploy resources from template
+- **Update Stack**: Modify existing resources
+- **Delete Stack**: Remove all stack resources
+- **Change Sets**: Preview changes before applying
+
+#### Stack Sets
+- Deploy stacks across multiple accounts and regions
+- Centralized management of infrastructure
+- Service-managed and self-managed permissions
+- Automatic deployment to new accounts (Organizations integration)
+
+#### Drift Detection
+- Compare actual resource configuration with template
+- Identify manual changes to resources
+- Stack-level and resource-level drift information
+- Integration with AWS Config
+
+#### Nested Stacks
+- Reference other CloudFormation templates
+- Modular and reusable template components
+- Pass parameters between parent and child stacks
+- Cross-stack references with Outputs/Imports
+
+#### Custom Resources
+- Extend CloudFormation with custom logic
+- Lambda-backed or SNS-backed custom resources
+- Handle resources not natively supported
+- Custom resource lifecycle (Create, Update, Delete)
+
+#### CloudFormation Registry
+- Third-party resource types and modules
+- AWS Public Extensions and Partner Extensions
+- Private extensions for organization
+- Resource type versioning
+
+#### CloudFormation Hooks
+- **CreationPolicy**: Wait for resource signals
+- **UpdatePolicy**: Control rolling updates
+- **DeletionPolicy**: Protect resources from deletion
+- **UpdateReplacePolicy**: Control replacement behavior
+
+#### Intrinsic Functions
+- **Ref**: Reference parameters and resources
+- **Fn::GetAtt**: Get resource attributes
+- **Fn::Join**: Concatenate strings
+- **Fn::Sub**: Substitute variables in strings
+- **Fn::If**: Conditional resource creation
+- **Fn::ImportValue**: Cross-stack references
+
+#### Benefits
+- Version control infrastructure
+- Rollback on failure
+- Drift detection
+- Cross-region deployment
+- Cost estimation before deployment
+- Dependency management
+- Repeatable infrastructure deployment
+
+## Container and Orchestration Services
+
+### Amazon ECR (Elastic Container Registry)
+Fully managed Docker container registry.
+
+#### Key Features
+- **Private Repositories**: Secure container image storage
+- **Image Scanning**: Vulnerability scanning with Inspector
+- **Lifecycle Policies**: Automated image cleanup
+- **Cross-Region Replication**: Multi-region image distribution
+- **OCI Artifact Support**: Store any OCI-compatible artifacts
+- **Immutable Tags**: Prevent tag overwriting
+
+### AWS Batch
+Fully managed batch computing service.
+
+#### Components
+```
+AWS Batch
+├── Job Definitions
+│   ├── Container Properties
+│   ├── Resource Requirements
+│   └── Job Parameters
+├── Job Queues
+│   ├── Priority Levels
+│   ├── Compute Environment Association
+│   └── Job Scheduling
+├── Compute Environments
+│   ├── Managed Compute
+│   │   ├── EC2 (On-Demand/Spot)
+│   │   └── Fargate
+│   └── Unmanaged Compute
+│       └── Custom EC2 Instances
+└── Jobs
+    ├── Job Submission
+    ├── Dependency Management
+    └── Array Jobs
+```
+
+## Data and Analytics Services
+
+### AWS Glue
+Serverless data integration service.
+
+#### Core Components
+- **Data Catalog**: Centralized metadata repository
+- **ETL Jobs**: Serverless data transformation
+- **Crawlers**: Automatic schema discovery
+- **Data Quality**: Data validation and monitoring
+- **DataBrew**: Visual data preparation
+
+### Amazon EMR (Elastic MapReduce)
+Big data platform for processing large datasets.
+
+#### Supported Frameworks
+- Apache Spark, Hadoop, HBase, Presto, Flink
+- Jupyter Notebooks, Zeppelin, Livy
+- Custom applications and frameworks
+
+## Additional Services
+
+### AWS Systems Manager
+Operational data and automation across AWS resources.
+
+#### Key Components
+- **Session Manager**: Browser-based shell access to instances
+- **Parameter Store**: Secure storage for configuration data
+  - String, StringList, SecureString parameters
+  - Parameter hierarchies and policies
+  - Integration with KMS for encryption
+- **Patch Manager**: Automate OS and software patching
+- **Run Command**: Execute commands remotely on instances
+- **State Manager**: Maintain consistent configuration
+- **Inventory**: Collect metadata about instances
+- **Maintenance Windows**: Schedule maintenance tasks
+- **Automation**: Simplify maintenance and deployment
+
+### AWS Secrets Manager
+Manage, retrieve, and rotate database credentials and other secrets.
+
+#### Secret Types and Rotation
+```
+AWS Secrets Manager
+├── Database Secrets
+│   ├── RDS (MySQL, PostgreSQL, SQL Server)
+│   │   ├── Automatic Rotation (30-365 days)
+│   │   ├── Lambda-based Rotation
+│   │   └── Multi-User Rotation Strategy
+│   ├── DocumentDB
+│   │   ├── MongoDB-compatible rotation
+│   │   └── Replica set support
+│   └── Redshift
+│       ├── Cluster and user rotation
+│       └── JDBC connection strings
+├── Other Secrets
+│   ├── API Keys and Tokens
+│   ├── SSH Keys and Certificates
+│   ├── Application Configuration
+│   └── Third-party Service Credentials
+├── Access Control
+│   ├── IAM Policies
+│   ├── Resource-based Policies
+│   ├── VPC Endpoints
+│   └── Cross-account Access
+└── Integration
+    ├── AWS SDKs
+    ├── Parameter Store Integration
+    ├── CloudFormation Dynamic References
+    └── Kubernetes Secrets Store CSI Driver
+```
+
+#### Advanced Features
+- **Automatic Rotation**: Built-in rotation for RDS, DocumentDB, Redshift
+- **Cross-Region Replication**: Replicate secrets across regions
+- **Fine-Grained Access Control**: IAM and resource-based policies
+- **VPC Endpoints**: Private network access
+- **Lambda Integration**: Custom rotation functions
+- **CloudFormation Integration**: Manage secrets as code
+- **Versioning**: Track secret changes and rollback
+- **Replica Secrets**: Read-only replicas in different regions
+
+### Amazon EventBridge (CloudWatch Events)
+Serverless event routing service.
+
+#### Core Concepts
+- **Event Buses**: Receive and route events
+- **Rules**: Match events and send to targets
+- **Targets**: Destinations for matched events
+- **Event Sources**: AWS services, SaaS applications, custom apps
+- **Event Patterns**: JSON patterns to match events
+- **Scheduled Rules**: Cron-like scheduling
+
+### AWS Step Functions
+Orchestrate distributed applications using visual workflows.
+
+#### State Types
+- **Task**: Execute work (Lambda, ECS, SNS, etc.)
+- **Choice**: Branch based on input
+- **Wait**: Delay for specified time
+- **Succeed/Fail**: End execution with status
+- **Parallel**: Execute branches in parallel
+- **Map**: Process array of items
+
+### Amazon SNS (Simple Notification Service)
+Pub/sub messaging for decoupling applications.
+
+#### Features
+- **Topics**: Communication channels for messages
+- **Subscriptions**: Endpoints that receive messages
+- **Message Filtering**: Deliver subset of messages
+- **Message Attributes**: Metadata for messages
+- **Dead Letter Queues**: Handle delivery failures
+- **FIFO Topics**: Ordered message delivery
+
+### Amazon SQS (Simple Queue Service)
+Managed message queuing service.
+
+#### Queue Types
+- **Standard Queues**: At-least-once delivery, best-effort ordering
+- **FIFO Queues**: Exactly-once processing, first-in-first-out
+
+#### Features
+- **Visibility Timeout**: Hide messages during processing
+- **Dead Letter Queues**: Handle processing failures
+- **Long Polling**: Reduce empty responses
+- **Message Deduplication**: Prevent duplicate processing
+- **Batch Operations**: Send/receive/delete multiple messages
+
+## Best Practices
+
+### Security
+- **Identity and Access**:
+  - Enable MFA for all users, especially root account
+  - Use IAM roles instead of sharing credentials
+  - Implement least privilege principle
+  - Regularly audit permissions with Access Analyzer
+  - Use temporary credentials and assume roles
+- **Data Protection**:
+  - Encrypt data at rest and in transit
+  - Use KMS for key management
+  - Enable VPC Flow Logs and CloudTrail
+  - Implement network segmentation with security groups
+- **Infrastructure Security**:
+  - Keep systems patched and updated
+  - Use AWS Systems Manager for patch management
+  - Implement defense in depth
+  - Regular security assessments
+
+### Cost Optimization
+- **Right Sizing**:
+  - Use appropriate instance types and sizes
+  - Monitor utilization with CloudWatch
+  - Use AWS Compute Optimizer recommendations
+- **Purchase Options**:
+  - Use Reserved Instances for predictable workloads
+  - Leverage Spot Instances for fault-tolerant workloads
+  - Consider Savings Plans for flexible commitments
+- **Resource Management**:
+  - Implement auto-scaling
+  - Schedule resources (start/stop based on usage)
+  - Monitor and optimize unused resources
+  - Use lifecycle policies for storage
+  - Set up billing alerts and budgets
+
+### High Availability and Disaster Recovery
+- **Multi-AZ Deployment**:
+  - Deploy across multiple Availability Zones
+  - Use Auto Scaling Groups for resilience
+  - Implement health checks and automated recovery
+- **Backup and Recovery**:
+  - Regular automated backups
+  - Cross-region backup replication
+  - Test disaster recovery procedures
+  - Document RTO and RPO requirements
+- **Design Patterns**:
+  - Design for failure
+  - Use managed services when possible
+  - Implement circuit breakers and retries
+  - Graceful degradation strategies
+
+### Performance Optimization
+- **Content Delivery**:
+  - Use CloudFront for global content delivery
+  - Implement caching strategies (ElastiCache)
+  - Optimize images and static content
+- **Database Performance**:
+  - Use read replicas for read-heavy workloads
+  - Implement connection pooling (RDS Proxy)
+  - Choose appropriate database engines and sizes
+- **Compute Optimization**:
+  - Choose appropriate instance types
+  - Use placement groups for high network performance
+  - Monitor application performance with X-Ray
+  - Optimize Lambda function memory and timeout
+
+### Operational Excellence
+- **Automation**:
+  - Automate operational procedures
+  - Use Infrastructure as Code (CloudFormation, CDK)
+  - Implement CI/CD pipelines
+  - Automate testing and deployment
+- **Monitoring and Observability**:
+  - Comprehensive monitoring with CloudWatch
+  - Centralized logging and log analysis
+  - Set up appropriate alarms and notifications
+  - Use distributed tracing for microservices
+- **Change Management**:
+  - Make frequent, small, reversible changes
+  - Use blue/green and canary deployments
+  - Implement proper testing strategies
+  - Document procedures and runbooks
+- **Learning and Improvement**:
+  - Conduct post-incident reviews
+  - Share knowledge across teams
+  - Regular architecture reviews
+  - Stay updated with AWS best practices
+
+## Real-World Production Architecture
+
+### Enterprise E-Commerce Platform on AWS
+
+This production architecture demonstrates how all the essential AWS components work together in a real-world, high-scale e-commerce platform serving millions of users globally.
+
+#### Architecture Overview
+
+```
+Enterprise E-Commerce Platform Architecture
+┌─────────────────────────────────────────────────────────────────────┐
+│                            Global Layer                              │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │   Route 53 (DNS)  │───┼───│ CloudFront (CDN) │───┼───│ WAF + Shield │  │
+│  │   - Health Checks  │   │   │   - Static Assets   │   │   │   - DDoS Protect│  │
+│  │   - Failover       │   │   │   - Edge Caching    │   │   │   - Rate Limiting│  │
+│  └───────────────────────────────────────────────────────────────┘  │
+├─────────────────────────────────────────────────────────────────────┤
+│              Primary Region (us-east-1) - Production               │
+├─────────────────────────────────────────────────────────────────────┤
+│                            VPC (10.0.0.0/16)                       │
+│                                                                     │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │                    Public Subnets (DMZ)                     │  │
+│  │                                                               │  │
+│  │  AZ-1a: 10.0.1.0/24    AZ-1b: 10.0.2.0/24    AZ-1c: 10.0.3.0/24 │  │
+│  │  ┌───────────────────┐  ┌───────────────────┐  ┌───────────────────┐ │  │
+│  │  │ ALB (Primary)     │  │ ALB (Secondary)   │  │ NAT Gateway      │ │  │
+│  │  │ - SSL Termination │  │ - Health Checks   │  │ - Outbound Access │ │  │
+│  │  │ - Path Routing    │  │ - Auto Scaling    │  │ - HA Deployment   │ │  │
+│  │  └───────────────────┘  └───────────────────┘  └───────────────────┘ │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+│                                   │                               │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │                   Private Subnets (App Tier)                │  │
+│  │                                                               │  │
+│  │  AZ-1a: 10.0.10.0/24   AZ-1b: 10.0.20.0/24   AZ-1c: 10.0.30.0/24│  │
+│  │                                                               │  │
+│  │  ┌─────────────────────────────────────────────────────────┐  │  │
+│  │  │                EKS Cluster (Kubernetes)                  │  │  │
+│  │  │                                                         │  │  │
+│  │  │  ┌───────────────────┐  ┌───────────────────┐  │  │  │
+│  │  │  │ Web App Pods       │  │ API Service Pods   │  │  │  │
+│  │  │  │ - React Frontend   │  │ - Node.js/Python   │  │  │  │
+│  │  │  │ - NGINX Ingress    │  │ - REST APIs        │  │  │  │
+│  │  │  │ - HPA Enabled      │  │ - Service Mesh     │  │  │  │
+│  │  │  └───────────────────┘  └───────────────────┘  │  │  │
+│  │  │                                                         │  │  │
+│  │  │  ┌───────────────────┐  ┌───────────────────┐  │  │  │
+│  │  │  │ Worker Pods        │  │ Cache Layer        │  │  │  │
+│  │  │  │ - Background Jobs  │  │ - Redis Cluster    │  │  │  │
+│  │  │  │ - Queue Processing │  │ - Session Store    │  │  │  │
+│  │  │  │ - Cron Jobs        │  │ - ElastiCache      │  │  │  │
+│  │  │  └───────────────────┘  └───────────────────┘  │  │  │
+│  │  └─────────────────────────────────────────────────────────┘  │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+│                                   │                               │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │                   Private Subnets (Data Tier)               │  │
+│  │                                                               │  │
+│  │  AZ-1a: 10.0.100.0/24  AZ-1b: 10.0.200.0/24  AZ-1c: 10.0.300.0/24│  │
+│  │                                                               │  │
+│  │  ┌───────────────────┐  ┌───────────────────┐  ┌───────────────────┐ │  │
+│  │  │ RDS Aurora (MySQL) │  │ DynamoDB Tables   │  │ OpenSearch      │ │  │
+│  │  │ - Multi-AZ Cluster │  │ - Product Catalog │  │ - Search Index   │ │  │
+│  │  │ - Read Replicas    │  │ - User Sessions   │  │ - Log Analytics  │ │  │
+│  │  │ - Automated Backup │  │ - Shopping Carts  │  │ - Multi-AZ       │ │  │
+│  │  └───────────────────┘  └───────────────────┘  └───────────────────┘ │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+├─────────────────────────────────────────────────────────────────────┤
+│                    Serverless & Storage Layer                     │
+│                                                                     │
+│  ┌───────────────────┐  ┌───────────────────┐  ┌───────────────────┐  │
+│  │ Lambda Functions    │  │ S3 Buckets          │  │ SQS/SNS Queues      │  │
+│  │ - Image Processing  │  │ - Static Assets     │  │ - Event Processing  │  │
+│  │ - Order Processing  │  │ - User Uploads      │  │ - Async Jobs        │  │
+│  │ - Email Notifications│  │ - Backup Storage    │  │ - Dead Letter Q     │  │
+│  │ - Payment Webhooks  │  │ - Data Lake         │  │ - Fan-out Patterns  │  │
+│  └───────────────────┘  └───────────────────┘  └───────────────────┘  │
+├─────────────────────────────────────────────────────────────────────┤
+│               Monitoring, Security & DevOps Layer                 │
+│                                                                     │
+│  ┌───────────────────┐  ┌───────────────────┐  ┌───────────────────┐  │
+│  │ CloudWatch Suite    │  │ Security Services   │  │ DevOps Pipeline     │  │
+│  │ - Metrics & Logs    │  │ - IAM Roles/Policies│  │ - CodeCommit        │  │
+│  │ - X-Ray Tracing     │  │ - KMS Encryption    │  │ - CodeBuild         │  │
+│  │ - Alarms & Dashboards│  │ - Secrets Manager   │  │ - CodeDeploy        │  │
+│  │ - Container Insights│  │ - GuardDuty/Macie   │  │ - CodePipeline      │  │
+│  └───────────────────┘  └───────────────────┘  └───────────────────┘  │
+├─────────────────────────────────────────────────────────────────────┤
+│            Secondary Region (us-west-2) - Disaster Recovery         │
+│                                                                     │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │              Warm Standby Infrastructure                    │  │
+│  │                                                               │  │
+│  │  • RDS Cross-Region Read Replicas (Promoted on Failover)      │  │
+│  │  • S3 Cross-Region Replication (Automatic)                   │  │
+│  │  • Lambda Functions (Deployed via CodePipeline)               │  │
+│  │  • EKS Cluster (Scaled down, can be scaled up)                │  │
+│  │  • DynamoDB Global Tables (Active-Active Replication)         │  │
+│  │  • Route 53 Health Checks (Automatic Failover)                │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+#### Architecture Components Breakdown
+
+##### **1. Global Layer**
+```
+Global Services Integration
+├── Route 53 (DNS Management)
+│   ├── Health Checks: Multi-region endpoint monitoring
+│   ├── Failover Routing: Automatic DR region switching
+│   ├── Geolocation Routing: Route users to closest region
+│   └── Weighted Routing: A/B testing and gradual rollouts
+├── CloudFront (CDN)
+│   ├── 400+ Edge Locations: Global content delivery
+│   ├── Static Asset Caching: Images, CSS, JS files
+│   ├── Dynamic Content Acceleration: API response caching
+│   └── Lambda@Edge: Edge computing for personalization
+└── AWS WAF + Shield
+    ├── DDoS Protection: Layer 3/4 and Layer 7 attacks
+    ├── Rate Limiting: API and web request throttling
+    ├── Geo-blocking: Country-based access control
+    └── Custom Rules: SQL injection, XSS protection
+```
+
+##### **2. Network Infrastructure**
+```
+VPC Network Design (us-east-1)
+├── VPC CIDR: 10.0.0.0/16 (65,536 IP addresses)
+├── Public Subnets (DMZ Layer)
+│   ├── us-east-1a: 10.0.1.0/24 (254 IPs)
+│   ├── us-east-1b: 10.0.2.0/24 (254 IPs)
+│   ├── us-east-1c: 10.0.3.0/24 (254 IPs)
+│   ├── Resources: ALB, NAT Gateway, Bastion Hosts
+│   └── Internet Gateway: 0.0.0.0/0 route
+├── Private Subnets (Application Layer)
+│   ├── us-east-1a: 10.0.10.0/24 (254 IPs)
+│   ├── us-east-1b: 10.0.20.0/24 (254 IPs)
+│   ├── us-east-1c: 10.0.30.0/24 (254 IPs)
+│   ├── Resources: EKS Nodes, Application Servers
+│   └── NAT Gateway: 0.0.0.0/0 route
+└── Private Subnets (Database Layer)
+    ├── us-east-1a: 10.0.100.0/24 (254 IPs)
+    ├── us-east-1b: 10.0.200.0/24 (254 IPs)
+    ├── us-east-1c: 10.0.300.0/24 (254 IPs)
+    ├── Resources: RDS, DynamoDB, ElastiCache
+    └── No Internet Routes: Maximum security
+```
+
+##### **3. Compute and Container Platform**
+```
+EKS Cluster Architecture
+├── Control Plane (AWS Managed)
+│   ├── Kubernetes Version: 1.28
+│   ├── Multi-AZ Deployment: 3 AZs for HA
+│   ├── Endpoint Access: Private + Public with CIDR restrictions
+│   └── Audit Logging: CloudWatch Logs integration
+├── Managed Node Groups
+│   ├── Web Tier: t3.large (2 vCPU, 8GB RAM)
+│   │   ├── Min Size: 3, Max Size: 20, Desired: 6
+│   │   ├── Auto Scaling: CPU > 70%, Memory > 80%
+│   │   └── Workloads: React apps, NGINX ingress
+│   ├── API Tier: m5.xlarge (4 vCPU, 16GB RAM)
+│   │   ├── Min Size: 2, Max Size: 15, Desired: 4
+│   │   ├── Auto Scaling: Custom metrics (requests/sec)
+│   │   └── Workloads: Node.js APIs, Python services
+│   └── Worker Tier: c5.large (2 vCPU, 4GB RAM)
+│       ├── Min Size: 1, Max Size: 10, Desired: 2
+│       ├── Auto Scaling: Queue depth based
+│       └── Workloads: Background jobs, cron tasks
+└── Add-ons and Tools
+    ├── AWS Load Balancer Controller: ALB integration
+    ├── Cluster Autoscaler: Node scaling
+    ├── Metrics Server: HPA/VPA support
+    ├── Container Insights: CloudWatch monitoring
+    └── AWS EBS CSI Driver: Persistent volume support
+```
+
+#### Operational Characteristics
+
+##### **Performance Metrics**
+- **Response Time**: < 200ms API response time (99th percentile)
+- **Throughput**: 50,000 requests/minute peak capacity
+- **Availability**: 99.99% uptime SLA (4.38 minutes downtime/month)
+- **Scalability**: Auto-scale from 100 to 10,000+ concurrent users
+- **Global Reach**: < 100ms response time worldwide via CloudFront
+
+##### **Security Implementation**
+- **Zero Trust Architecture**: Every request authenticated and authorized
+- **Encryption**: End-to-end encryption (TLS 1.3, KMS keys)
+- **Network Security**: Private subnets, NACLs, security groups
+- **Access Control**: IAM roles, least privilege principle
+- **Monitoring**: CloudTrail, GuardDuty, Security Hub integration
+
+##### **Disaster Recovery Strategy**
+- **RTO (Recovery Time Objective)**: 4 hours
+- **RPO (Recovery Point Objective)**: 15 minutes
+- **Strategy**: Warm standby in us-west-2
+- **Failover**: Automated via Route 53 health checks
+- **Data Replication**: Cross-region read replicas, S3 CRR
+
+This production architecture demonstrates how AWS services integrate to create a scalable, secure, and highly available e-commerce platform capable of handling millions of users while maintaining operational excellence and cost efficiency.
