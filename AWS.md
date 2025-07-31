@@ -23,6 +23,8 @@
 - **Wavelength Zones**: Ultra-low latency applications for 5G devices
 - **AWS Outposts**: Fully managed service extending AWS to on-premises
 
+📖 **Learn More**: [AWS Global Infrastructure](https://aws.amazon.com/about-aws/global-infrastructure/) | [Regions and Availability Zones](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
+
 ### AWS Resource Hierarchy
 AWS organizes resources in a hierarchical structure from top to bottom:
 
@@ -96,6 +98,8 @@ Five pillars for building secure, high-performing, resilient, and efficient infr
 - **Roles**: Temporary permissions that can be assumed by trusted entities
 - **Policies**: JSON documents defining permissions
 
+📖 **Learn More**: [AWS IAM Documentation](https://docs.aws.amazon.com/iam/) | [IAM Best Practices](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html)
+
 ### Key Concepts
 - **Principal**: Entity that can make requests (user, role, service)
 - **Action**: What can be performed (e.g., s3:GetObject)
@@ -140,6 +144,8 @@ Five pillars for building secure, high-performing, resilient, and efficient infr
 
 ### What is VPC?
 A logically isolated section of AWS cloud where you can launch resources in a virtual network you define. Think of it as your own private data center in the cloud.
+
+📖 **Learn More**: [Amazon VPC Documentation](https://docs.aws.amazon.com/vpc/) | [VPC User Guide](https://docs.aws.amazon.com/vpc/latest/userguide/)
 
 ### Core Components
 
@@ -257,6 +263,8 @@ VPC Endpoints
 ### EC2 (Elastic Compute Cloud)
 Virtual servers in the cloud with various instance types optimized for different use cases.
 
+📖 **Learn More**: [Amazon EC2 Documentation](https://docs.aws.amazon.com/ec2/) | [EC2 Instance Types](https://aws.amazon.com/ec2/instance-types/)
+
 #### Instance Types
 - **General Purpose**: t3, m5 (balanced CPU, memory, networking)
 - **Compute Optimized**: c5 (CPU-intensive applications)
@@ -326,6 +334,8 @@ Virtual servers in the cloud with various instance types optimized for different
 
 ### Lambda
 Serverless compute service running code without managing servers.
+
+📖 **Learn More**: [AWS Lambda Documentation](https://docs.aws.amazon.com/lambda/) | [Lambda Developer Guide](https://docs.aws.amazon.com/lambda/latest/dg/)
 
 #### Key Features
 - Automatic scaling based on requests
@@ -523,6 +533,8 @@ EKS Cluster
 
 ### S3 (Simple Storage Service)
 Object storage service offering industry-leading scalability, data availability, security, and performance.
+
+📖 **Learn More**: [Amazon S3 Documentation](https://docs.aws.amazon.com/s3/) | [S3 User Guide](https://docs.aws.amazon.com/AmazonS3/latest/userguide/)
 
 #### Storage Classes
 Optimize costs based on access patterns and durability requirements:
@@ -775,6 +787,8 @@ Fully managed NFS file system for EC2 instances.
 
 ### RDS (Relational Database Service)
 Managed relational database service supporting multiple database engines.
+
+📖 **Learn More**: [Amazon RDS Documentation](https://docs.aws.amazon.com/rds/) | [RDS User Guide](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/)
 
 #### Supported Engines
 - **Amazon Aurora** (MySQL and PostgreSQL compatible)

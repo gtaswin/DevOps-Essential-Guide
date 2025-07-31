@@ -25,6 +25,8 @@
 - **Data Centers**: Physical facilities within availability zones
 - **Edge Locations**: Azure CDN points of presence for content delivery
 
+📖 **Learn More**: [Azure Global Infrastructure](https://azure.microsoft.com/en-us/explore/global-infrastructure/) | [Azure Regions](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview)
+
 ### Azure Resource Hierarchy
 Azure uses a hierarchical structure from top to bottom:
 
@@ -119,6 +121,8 @@ Five pillars for building excellent solutions:
 
 ### Azure Active Directory (Azure AD)
 Cloud-based identity and access management service.
+
+📖 **Learn More**: [Azure Active Directory Documentation](https://docs.microsoft.com/en-us/azure/active-directory/) | [Azure AD Overview](https://docs.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-whatis)
 
 #### Core Components
 - **Users**: Individual identities (employees, guests, consumers)
