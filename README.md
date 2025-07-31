@@ -1,6 +1,19 @@
-# DevOps Essential Guide
+<div align="center">
 
-A comprehensive collection of essential DevOps concepts, best practices, and real-world production examples covering cloud platforms, infrastructure automation, container orchestration, and configuration management.
+# 🚀 DevOps Essential Guide
+
+<img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/devops/devops-original-wordmark.svg" alt="DevOps" width="200"/>
+
+*A comprehensive collection of essential DevOps concepts, best practices, and real-world production examples covering cloud platforms, infrastructure automation, container orchestration, and configuration management.*
+
+[![Infrastructure](https://img.shields.io/badge/Infrastructure-Terraform-623CE4?logo=terraform&logoColor=white)](TERRAFORM.md)
+[![Configuration](https://img.shields.io/badge/Configuration-Ansible-EE0000?logo=ansible&logoColor=white)](ANSIBLE.md)
+[![Orchestration](https://img.shields.io/badge/Orchestration-Kubernetes-326CE5?logo=kubernetes&logoColor=white)](KUBERNETES.md)
+[![AWS](https://img.shields.io/badge/Cloud-AWS-FF9900?logo=amazon-aws&logoColor=white)](AWS.md)
+[![Azure](https://img.shields.io/badge/Cloud-Azure-0078D4?logo=microsoft-azure&logoColor=white)](AZURE.md)
+[![GCP](https://img.shields.io/badge/Cloud-GCP-4285F4?logo=google-cloud&logoColor=white)](GCP.md)
+
+</div>
 
 ## 📋 Table of Contents
 
