@@ -105,6 +105,13 @@ Service Account Architecture
 | **Max vCPUs** | 448 vCPUs | 416 vCPUs | 416 vCPUs |
 | **Max Memory** | 24 TB | 12 TB | 12 TB |
 
+**🎯 Quick Decision Guide:**
+- **Choose AWS** if: You need the widest selection of instance types and mature ecosystem
+- **Choose Azure** if: You have existing Microsoft infrastructure and need hybrid capabilities  
+- **Choose GCP** if: You want automatic discounts, fast boot times, and custom machine sizing
+
+💡 **Cost Optimization Tip**: GCP's sustained use discounts can save 20-30% automatically without upfront commitments, while AWS/Azure require Reserved Instance planning.
+
 ### **Scaling and Availability**
 
 ```

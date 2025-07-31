@@ -250,6 +250,16 @@ Service Types
 ### Ingress
 Ingress manages external access to services, typically HTTP/HTTPS traffic.
 
+**Real-World Example**:
+```
+Your e-commerce platform with multiple services:
+- api.mystore.com → API service pods
+- www.mystore.com → Frontend service pods  
+- admin.mystore.com → Admin dashboard pods
+- Single load balancer handles SSL and routing
+- Perfect for: Multi-service applications, domain-based routing
+```
+
 **Ingress Features:**
 - Host-based routing (different domains)
 - Path-based routing (URL paths)
@@ -263,14 +273,32 @@ Ingress manages external access to services, typically HTTP/HTTPS traffic.
 - HAProxy Ingress
 - Cloud provider controllers (ALB, GCE)
 
+💡 **Tip**: Ingress controllers must be installed separately - they're not part of Kubernetes core. Choose based on your features needs.
+
+📖 **Learn More**: [Ingress Documentation](https://kubernetes.io/docs/concepts/services-networking/ingress/) | [Ingress Controllers](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/)
+
 ### Network Policies
 Network policies act as firewalls for pods, controlling traffic flow at the IP address or port level.
+
+**Real-World Example**:
+```
+Your microservices security setup:
+- Frontend pods can only talk to API pods
+- API pods can only talk to database pods
+- Database pods cannot initiate outbound connections
+- External traffic blocked by default
+- Perfect for: Zero-trust networking, PCI compliance, multi-tenant clusters
+```
 
 **Policy Types:**
 - **Ingress**: Controls incoming traffic to pods
 - **Egress**: Controls outgoing traffic from pods
 - **Default Deny**: Block all traffic by default
 - **Allow Specific**: Allow traffic from specific sources
+
+⚠️ **Warning**: Network Policies require a compatible CNI plugin (Calico, Cilium, etc.). Not all clusters support them by default.
+
+📖 **Learn More**: [Network Policies Documentation](https://kubernetes.io/docs/concepts/services-networking/network-policies/) | [Network Policy Recipes](https://github.com/ahmetb/kubernetes-network-policy-recipes)
 
 ## Storage
 

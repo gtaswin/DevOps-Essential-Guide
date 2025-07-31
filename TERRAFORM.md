@@ -101,6 +101,8 @@ Terraform Architecture
 ### What is Terraform State?
 State is Terraform's way of tracking which real-world resources correspond to your configuration. It's a JSON file that maps your configuration to actual infrastructure.
 
+🔥 **Critical**: State files contain sensitive data (passwords, private keys). Never commit terraform.tfstate to version control!
+
 ### State Storage Options
 ```
 State Management
@@ -127,6 +129,10 @@ State Management
 - **Security**: State contains sensitive information
 - **Backup**: Automatic backup and versioning
 - **Locking**: Prevents conflicts during simultaneous operations
+
+⚠️ **Warning**: Always configure state locking in production to prevent corruption from simultaneous terraform runs.
+
+✅ **Best Practice**: Use separate state files for different environments (dev/staging/prod) to prevent accidental cross-environment changes.
 
 ## Providers
 

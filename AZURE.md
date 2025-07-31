@@ -261,6 +261,18 @@ Automatically managed identities in Azure AD for Azure services.
 ### What is Virtual Network (VNet)?
 Fundamental building block for private networks in Azure. Enables Azure resources to securely communicate with each other, the internet, and on-premises networks.
 
+**Real-World Example**:
+```
+Your company's network architecture in Azure:
+- VNet (10.0.0.0/16): Your private cloud network
+- Web subnet (10.0.1.0/24): Public-facing web servers
+- App subnet (10.0.2.0/24): Application servers (private)
+- DB subnet (10.0.3.0/24): Database servers (most secure)
+- Perfect for: Multi-tier applications, network isolation, hybrid connectivity
+```
+
+📖 **Learn More**: [Virtual Network Documentation](https://docs.microsoft.com/en-us/azure/virtual-network/) | [VNet Planning](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-vnet-plan-design-arm)
+
 ### Core Components
 
 #### Subnets
@@ -269,15 +281,23 @@ Fundamental building block for private networks in Azure. Enables Azure resource
 - Can span multiple availability zones
 - Resources deployed into specific subnets
 
+💡 **Tip**: Plan your subnet CIDR blocks carefully - you can expand VNets but not individual subnets after creation.
+
 #### Network Security Groups (NSGs)
 - Contain security rules that allow or deny network traffic
 - Applied to subnets or individual network interfaces
 - Stateful firewall rules with 5-tuple information
 - Default rules include DenyAllInbound and AllowVnetInbound
 
+⚠️ **Warning**: NSG rules are evaluated by priority (100-4096). Lower numbers = higher priority. Plan your rule priorities carefully.
+
+📖 **Learn More**: [Network Security Groups](https://docs.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview) | [NSG Rules](https://docs.microsoft.com/en-us/azure/virtual-network/network-security-group-how-it-works)
+
 #### Application Security Groups (ASGs)
 - Logical grouping of virtual machines
 - Define network security policies based on workloads
+
+✅ **Best Practice**: Use ASGs instead of IP addresses in NSG rules for more maintainable security policies.
 - Simplify security rule management
 - Reference in NSG rules instead of IP addresses
 - Support for dynamic membership

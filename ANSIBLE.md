@@ -322,11 +322,24 @@ Ansible Facts
 ### Jinja2 Templates
 Ansible uses Jinja2 templating engine for dynamic file generation.
 
+**Real-World Example**:
+```
+Your web server configuration needs environment-specific settings:
+- Database connections vary per environment (dev/staging/prod)
+- SSL certificates different for each domain
+- Resource limits based on server capacity
+- Perfect for: Configuration files, environment-specific deployments
+```
+
 **Template Features:**
 - **Variable substitution**: Insert dynamic values
 - **Conditional logic**: Include/exclude content based on conditions
 - **Loops**: Generate repetitive content
 - **Filters**: Transform data (uppercase, date formatting, etc.)
+
+💡 **Tip**: Use Jinja2 templates for any file that needs dynamic content - don't hardcode environment-specific values!
+
+⚠️ **Warning**: Always validate template output in staging before production deployment to catch syntax errors.
 - **Macros**: Reusable template components
 
 ### File Management

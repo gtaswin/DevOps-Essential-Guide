@@ -288,11 +288,19 @@ Your API servers in private subnet need to download software updates:
 - Custom flow log formats available
 - Can capture accepted, rejected, or all traffic
 
+💡 **Tip**: Enable VPC Flow Logs for security analysis and troubleshooting - they only capture metadata, not actual packet contents.
+
+📖 **Learn More**: [VPC Flow Logs](https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html) | [Flow Logs Examples](https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs-records-examples.html)
+
 ### Elastic Network Interfaces (ENI)
 - Virtual network interface you can attach to instances
 - Includes private IPv4/IPv6 addresses, security groups
 - Can be moved between instances for failover
 - Hot-attach, warm-attach, or cold-attach
+
+⚠️ **Warning**: When moving ENIs between instances, ensure the instances are in the same Availability Zone.
+
+📖 **Learn More**: [Elastic Network Interfaces](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html) | [ENI Scenarios](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/scenarios-enis.html)
 
 ### VPC Peering
 - Network connection between two VPCs
@@ -302,11 +310,19 @@ Your API servers in private subnet need to download software updates:
 - Cross-region and cross-account peering supported
 - No transitive routing (hub-and-spoke requires multiple peerings)
 
+🔥 **Important**: VPC Peering is not transitive - if VPC A peers with VPC B, and VPC B peers with VPC C, then VPC A cannot communicate with VPC C directly.
+
+📖 **Learn More**: [VPC Peering](https://docs.aws.amazon.com/vpc/latest/peering/) | [Peering Configurations](https://docs.aws.amazon.com/vpc/latest/peering/peering-configurations.html)
+
 ### Transit Gateway
 - Network transit hub connecting VPCs and on-premises networks
 - Simplifies network architecture (star configuration)
 - Supports thousands of VPC connections
 - Route tables for granular routing control
+
+✅ **Best Practice**: Use Transit Gateway instead of multiple VPC peering connections when you have 3+ VPCs to connect.
+
+📖 **Learn More**: [AWS Transit Gateway](https://docs.aws.amazon.com/vpc/latest/tgw/) | [Transit Gateway Examples](https://docs.aws.amazon.com/vpc/latest/tgw/TGW_Scenarios.html)
 - Cross-region peering and multicast support
 
 ### VPC Endpoints
