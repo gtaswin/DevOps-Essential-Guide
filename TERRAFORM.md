@@ -302,6 +302,8 @@ Terraform Workflow
 4. **Version**: Commit configuration to version control
 5. **Collaborate**: Share changes with team
 
+📖 **Learn More**: [Terraform CLI Commands](https://developer.hashicorp.com/terraform/cli/commands) | [Terraform Workflow](https://developer.hashicorp.com/terraform/intro/core-workflow)
+
 ### Environment Management
 ```
 Environment Strategy

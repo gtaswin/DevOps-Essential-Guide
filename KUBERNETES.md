@@ -524,6 +524,8 @@ Common monitoring tools in Kubernetes:
 - **Jaeger/Zipkin**: Distributed tracing
 - **Alertmanager**: Alert routing and management
 
+📖 **Learn More**: [Kubernetes Monitoring](https://kubernetes.io/docs/tasks/debug-application-cluster/resource-usage-monitoring/) | [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator)
+
 ## Best Practices
 
 ### Resource Management

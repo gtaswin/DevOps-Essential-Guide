@@ -343,6 +343,8 @@ Compute Engine Machine Families
 ### Google Kubernetes Engine (GKE)
 Managed Kubernetes service for containerized applications.
 
+📖 **Learn More**: [Google Kubernetes Engine Documentation](https://cloud.google.com/kubernetes-engine/docs) | [GKE Concepts](https://cloud.google.com/kubernetes-engine/docs/concepts)
+
 #### Cluster Types
 - **Standard**: Full Kubernetes API with node management options
 - **Autopilot**: Fully managed with optimized configuration
@@ -356,6 +358,8 @@ Managed Kubernetes service for containerized applications.
 
 ### App Engine
 Fully managed serverless platform for web applications.
+
+📖 **Learn More**: [Google App Engine Documentation](https://cloud.google.com/appengine/docs) | [App Engine Environments](https://cloud.google.com/appengine/docs/the-appengine-environments)
 
 #### Environments
 - **Standard**: Automatic scaling, sandboxed runtime

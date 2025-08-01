@@ -969,6 +969,8 @@ S3 Storage Classes
 ### EBS (Elastic Block Store)
 High-performance block storage for EC2 instances.
 
+📖 **Learn More**: [Amazon EBS Documentation](https://docs.aws.amazon.com/ebs/) | [EBS Volume Types](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html)
+
 #### Volume Types
 - **gp3 (General Purpose SSD)**: Latest generation
   - 3,000 IOPS baseline, up to 16,000 IOPS
@@ -1353,10 +1355,14 @@ Your established e-commerce site with predictable patterns:
 ### ElastiCache
 In-memory caching service supporting Redis and Memcached.
 
+📖 **Learn More**: [Amazon ElastiCache Documentation](https://docs.aws.amazon.com/elasticache/) | [ElastiCache for Redis](https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/)
+
 ## Networking
 
 ### CloudFront
 Global content delivery network (CDN) service.
+
+📖 **Learn More**: [Amazon CloudFront Documentation](https://docs.aws.amazon.com/cloudfront/) | [CloudFront Developer Guide](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/)
 
 #### Benefits
 - Low latency content delivery
@@ -1368,6 +1374,8 @@ Global content delivery network (CDN) service.
 ### Route 53
 Scalable domain name system (DNS) web service.
 
+📖 **Learn More**: [Amazon Route 53 Documentation](https://docs.aws.amazon.com/route53/) | [Route 53 Developer Guide](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/)
+
 #### Features
 - Domain registration
 - DNS routing
@@ -1377,6 +1385,8 @@ Scalable domain name system (DNS) web service.
 
 ### Direct Connect
 Dedicated network connection from on-premises to AWS.
+
+📖 **Learn More**: [AWS Direct Connect Documentation](https://docs.aws.amazon.com/directconnect/) | [Direct Connect User Guide](https://docs.aws.amazon.com/directconnect/latest/UserGuide/)
 
 #### Benefits
 - Consistent network performance

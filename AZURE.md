@@ -607,6 +607,8 @@ App Service Plans
 ### Azure Functions
 Serverless compute service for event-driven applications.
 
+📖 **Learn More**: [Azure Functions Documentation](https://docs.microsoft.com/en-us/azure/azure-functions/) | [Functions Triggers and Bindings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-triggers-bindings)
+
 #### Hosting Plans
 - **Consumption Plan**: Pay only for execution time
 - **Premium Plan**: Pre-warmed instances and VNet connectivity
@@ -619,11 +621,17 @@ Serverless compute service for event-driven applications.
 
 ### Container Services
 
+📖 **Learn More**: [Azure Container Services Documentation](https://docs.microsoft.com/en-us/azure/containers/) | [Container Services Overview](https://azure.microsoft.com/en-us/product-categories/containers/)
+
 #### Azure Container Instances (ACI)
 Serverless containers without managing infrastructure.
 
+📖 **Learn More**: [Azure Container Instances Documentation](https://docs.microsoft.com/en-us/azure/container-instances/)
+
 #### Azure Kubernetes Service (AKS)
 Managed Kubernetes service for containerized applications.
+
+📖 **Learn More**: [Azure Kubernetes Service Documentation](https://docs.microsoft.com/en-us/azure/aks/) | [AKS Best Practices](https://docs.microsoft.com/en-us/azure/aks/best-practices)
 
 #### Features
 - Integrated CI/CD with Azure DevOps
